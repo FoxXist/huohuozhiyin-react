@@ -6,12 +6,11 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { Button } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 
 const { queryUserList } = services.UserController;
 
 const TableList: React.FC<unknown> = () => {
-  useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const columns: ProColumns<API.UserInfo>[] = [
     {
