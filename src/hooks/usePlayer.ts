@@ -26,53 +26,60 @@ const initialPlayers: PlayerType[] = [
 ];
 
 const usePlayer = () => {
-  // 球员位置
   const [playerList, setPlayerList] = useState(initialPlayers);
 
   // 从球员到球场的位置更新
-  const updatePosPlayerById = (playerId: number, assignPositionId: number) => {
+  // playerId 拖拽的球员 assignPositionId 拖到的位置 老位置的球员 originPlayerId
+  const updatePosPlayerById = (
+    playerId: number,
+    assignPositionId: number,
+    originPlayerId?: number,
+  ) => {
     setPlayerList((prev) =>
-      prev.map((player) =>
-        player.id === playerId ? { ...player, assignPositionId } : player,
-      ),
+      prev.map((player) => {
+        if (player.id === playerId) {
+          return { ...player, assignPositionId };
+        } else if (originPlayerId && player.id === originPlayerId) {
+          return { ...player, assignPositionId: void 0 };
+        }
+        return player;
+      }),
     );
   };
 
   // 从球场到球场位置更新
-  const switchPlayerPos = (
-    targetPosId: number,
-    targetPlayerId: number,
-    // originPosId: number,
-    // originPlayerId?: number,
-  ) => {
+  const switchPlayerPos = (targetPosId: number, targetPlayerId: number) => {
     setPlayerList((prev) => {
       const updated = [...prev];
 
-      // 找到目标位置上的球员（要被换下的）
-      const targetPlayer = updated.find(
-        (p) => p.assignPositionId === targetPosId,
+      // todo 找到老位置 替换为新位置即可
+      const originPosIdIndex = updated.findIndex(
+        (v) => v.id === targetPlayerId,
       );
-
-      // 找到正在被拖动的球员（要换上去的）
-      const sourcePlayer = updated.find((p) => p.id === targetPlayerId);
-
-      // 如果目标位置没人，直接赋值
-      if (!targetPlayer) {
-        return updated.map((p) =>
-          p.id === targetPlayerId ? { ...p, assignPositionId: targetPosId } : p,
+      if (originPosIdIndex !== -1) {
+        // 原来位置有球员
+        const originPosPlayerIdIndex = updated.findIndex(
+          (v) => v.assignPositionId && v.assignPositionId === targetPosId,
         );
+
+        const originPosId = updated[originPosIdIndex].assignPositionId;
+
+        updated.splice(originPosIdIndex, 1, {
+          ...updated[originPosIdIndex],
+          assignPositionId: targetPosId,
+        });
+
+        if (originPosPlayerIdIndex !== -1) {
+          updated.splice(originPosPlayerIdIndex, 1, {
+            ...updated[originPosPlayerIdIndex],
+            assignPositionId: originPosId,
+          });
+        }
+
+        return updated;
       }
 
-      // 否则，交换两人位置
-      return updated.map((p) => {
-        if (p.id === targetPlayerId) {
-          return { ...p, assignPositionId: targetPosId };
-        }
-        if (p.id === targetPlayer.id) {
-          return { ...p, assignPositionId: sourcePlayer?.assignPositionId };
-        }
-        return p;
-      });
+      return updated;
     });
   };
 

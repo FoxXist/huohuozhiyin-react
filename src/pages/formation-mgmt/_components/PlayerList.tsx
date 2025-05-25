@@ -1,7 +1,5 @@
-import { Drag_List } from '@/pages/formation-mgmt/constants';
+import { Drag_List, Drag_Player } from '@/pages/formation-mgmt/constants';
 import { useDrag } from 'react-dnd';
-
-const PLAYER_TYPE = 'PLAYER';
 
 const Player = ({
   name,
@@ -12,7 +10,7 @@ const Player = ({
   onChange?: (val: number) => void;
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: PLAYER_TYPE,
+    type: Drag_Player,
     item: { from: Drag_List, name, playerId: id },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),

@@ -1,11 +1,9 @@
-import usePlayer, { PlayerType } from '@/hooks/usePlayer';
-import { Drag_Field, Drag_List } from '@/pages/formation-mgmt/constants';
-import FormationBg from '@/public/formation-bg.png';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import usePlayer from '@/hooks/usePlayer';
+import SceneList from '@/pages/formation-mgmt/_components/SceneList';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import Field from './_components/Field';
 import PlayerList from './_components/PlayerList';
-
-const PLAYER_TYPE = 'PLAYER';
 
 const formationJson = {
   name: '4-3-3',
@@ -24,112 +22,31 @@ const formationJson = {
   ],
 };
 
-const Position = ({ id, player, onDrop, onFieldDrop, top, left }) => {
-  console.log(player);
-  const [{ isDragging }, drag] = useDrag(
-    () => ({
-      type: PLAYER_TYPE,
-      item: { from: Drag_Field, id, player: player },
-      canDrag: !!player,
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    }),
-    [player],
-  );
-
-  const [, drop] = useDrop(() => ({
-    accept: PLAYER_TYPE,
-    drop: (item: any) => {
-      console.log(item);
-      // 来源为球员列表
-      if (item.from === Drag_List) {
-        onDrop(item.playerId, id, Drag_List);
-      } else if (item.from === Drag_Field) {
-        // 来自场内交换
-        onFieldDrop(id, item.id, Drag_Field);
-      }
-    },
-  }));
-
-  return (
-    <div
-      ref={(node) => drag(drop(node))}
-      className={`absolute w-12 h-12 rounded-full border-2 border-white flex items-center justify-center text-white text-xs ${
-        player ? 'bg-green-700' : 'bg-transparent'
-      }`}
-      style={{
-        top: `${top}%`,
-        left: `${left}%`,
-        transform: `translate(-50%, -50%)`,
-        opacity: isDragging ? 0.5 : 1,
-      }}
-    >
-      <div className="relative">
-        <div>{player?.name || id}</div>
-      </div>
-    </div>
-  );
-};
-
-const Field = ({ formation, playerList, onDrop, onFieldDrop }) => {
-  const findPlayer = (id: number) => {
-    return playerList.find(
-      (player: PlayerType) => player?.assignPositionId === id,
-    );
-  };
-
-  return (
-    <div className="relative flex items-center size-full max-w-[700px] mx-auto">
-      <div className="relative aspect-[4/4] w-full">
-        <img
-          src={FormationBg}
-          className="absolute top-0 left-0 w-full h-full object-contain"
-          alt="field"
-        />
-        {formation.positions.map((pos) => (
-          <Position
-            key={pos.id}
-            id={pos.id}
-            player={findPlayer(pos.id)}
-            onDrop={onDrop}
-            onFieldDrop={onFieldDrop}
-            top={pos.y}
-            left={pos.x}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 export default function FormationEdit() {
   const { playerList, updatePosPlayerById, switchPlayerPos } = usePlayer();
 
   const handleListToFieldDrop = (
     playerId: number,
     assignPositionId: number,
-    type: string,
+    originPlayerId?: number,
   ) => {
-    if (type === Drag_List) {
-      updatePosPlayerById(playerId, assignPositionId);
-    }
+    updatePosPlayerById(playerId, assignPositionId, originPlayerId);
   };
 
   const handleFieldToFieldDrop = (
     targetPosId: number,
     targetPlayerId: number,
-    originPosId: number,
     originPlayerId?: number,
   ) => {
-    // switchPlayerPos(targetPosId, targetPlayerId, originPosId, originPlayerId);
+    switchPlayerPos(targetPosId, targetPlayerId);
   };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex h-screen w-full bg-green-900 text-white p-4 gap-4">
-        <div className="w-1/4 p-4">
+        <div className="w-1/8 p-4 bg-green-800 rounded-lg overflow-y-auto">
           <h2 className="text-lg font-bold mb-4">阵型选择</h2>
+          <SceneList />
         </div>
         <div className="flex-1">
           <Field
